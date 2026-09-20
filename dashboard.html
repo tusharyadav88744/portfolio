@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Restaurant Sales Dashboard</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+body{font-family:Arial;background:#101827;color:white;padding:20px}
+h1{text-align:center}
+.card{background:#1e293b;padding:20px;margin:15px 0;border-radius:12px}
+.chart{background:white;border-radius:10px;margin:20px 0}
+</style>
+</head>
+<body>
+
+<h1>Restaurant Sales Dashboard</h1>
+
+<div class="card">
+<h2>Restaurant Sales Analysis</h2>
+<p>Interactive Data Analytics Dashboard</p>
+<p>Tools: Python | Pandas | Plotly</p>
+</div>
+
+<div class="card">
+<h2>Dataset Overview</h2>
+<p>Restaurant billing and tip analysis</p>
+</div>
+
+<div id="billTip" class="chart"></div>
+<div id="dayChart" class="chart"></div>
+<div id="genderChart" class="chart"></div>
+
+<script>
+const url =
+"https://raw.githubusercontent.com/mwaskom/seaborn-data/master/tips.csv";
+
+fetch(url)
+.then(response=>response.text())
+.then(text=>{
+
+const rows=text.trim().split("\n").map(r=>r.split(","));
+const headers=rows.shift();
+
+const data=rows.map(r=>{
+let obj={};
+headers.forEach((h,i)=>obj[h]=r[i]);
+return obj;
+});
+
+const bills=data.map(d=>+d.total_bill);
+const tips=data.map(d=>+d.tip);
+
+Plotly.newPlot("billTip",[{
+x:bills,
+y:tips,
+mode:"markers",
+type:"scatter",
+text:data.map(d=>d.sex),
+marker:{size:9}
+}],{
+title:"Total Bill vs Tip",
+xaxis:{title:"Total Bill"},
+yaxis:{title:"Tip"}
+});
+
+const days={};
+
+data.forEach(d=>{
+if(!days[d.day])days[d.day]=[];
+days[d.day].push(+d.total_bill);
+});
+
+Plotly.newPlot("dayChart",
+[{
+x:Object.keys(days),
+y:Object.values(days).map(v=>
+v.reduce((a,b)=>a+b,0)/v.length
+),
+type:"bar"
+}],
+{
+title:"Average Bill by Day",
+xaxis:{title:"Day"},
+yaxis:{title:"Average Bill"}
+});
+
+const gender={};
+
+data.forEach(d=>{
+gender[d.sex]=(gender[d.sex]||0)+1;
+});
+
+Plotly.newPlot("genderChart",
+[{
+labels:Object.keys(gender),
+values:Object.values(gender),
+type:"pie"
+}],
+{title:"Customers by Gender"});
+
+});
+</script>
+
+</body>
+</html>
